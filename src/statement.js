@@ -7,27 +7,31 @@ function calculateVolumeCredits(perf, play) {
   return volumeCredits;
 }
 
+function toUsd(amount) {
+  return  new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+  }).format(amount/100);
+}
+
 function statement (invoice, plays) {
   let totalAmount = 0;
   let volumeCredits = 0;
   let result = `Statement for ${invoice.customer}\n`;
-  //格式化金钱转为美元
-  const format = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format;
+
   //遍历所有的剧场剧目
   for (let perf of invoice.performances) {
     const play = plays[perf.playID];
     let thisAmount = calculateAmount(play,perf);
     volumeCredits += calculateVolumeCredits(perf, play);
     //print line for this order
-    result += ` ${play.name}: ${format(thisAmount / 100)} (${perf.audience} seats)\n`;
+    result += ` ${play.name}: ${toUsd(thisAmount)} (${perf.audience} seats)\n`;
     totalAmount += thisAmount;
   }
 
-  result += `Amount owed is ${format(totalAmount / 100)}\n`;
+
+  result += `Amount owed is ${toUsd(totalAmount)}\n`;
   result += `You earned ${volumeCredits} credits \n`;
   return result;
 }
