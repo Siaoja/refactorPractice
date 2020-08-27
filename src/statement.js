@@ -1,8 +1,6 @@
 function calculateVolumeCredits(perf, play) {
     let volumeCredits = 0;
-    // add volume credits  计算返还客户的积分
     volumeCredits += Math.max(perf.audience - 30, 0);
-    // add extra credit for every ten comedy attendees
     if ('comedy' === play.type) volumeCredits += Math.floor(perf.audience / 5);
     return volumeCredits;
 }
@@ -76,18 +74,14 @@ function statement(invoice, plays) {
 function calculateAmount(play, perf) {
     let thisAmount = 0;
     switch (play.type) {
-        //悲剧的收费
         case 'tragedy':
             thisAmount = 40000;
-            //如果观众人数多于30人，加收费用
             if (perf.audience > 30) {
                 thisAmount += 1000 * (perf.audience - 30);
             }
             break;
-        //喜剧收费
         case 'comedy':
             thisAmount = 30000;
-            //如果观众多于20人，加收费用
             if (perf.audience > 20) {
                 thisAmount += 10000 + 500 * (perf.audience - 20);
             }
