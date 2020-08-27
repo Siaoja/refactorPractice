@@ -15,21 +15,30 @@ function toUsd(amount) {
   }).format(amount/100);
 }
 
+function calculateTotalAmount(invoice, plays) {
+  let totalAmount = 0;
+  for (let perf of invoice.performances) {
+    const play = plays[perf.playID];
+    let thisAmount = calculateAmount(play, perf);
+    totalAmount += thisAmount;
+  }
+  return totalAmount;
+}
+
 function statement (invoice, plays) {
   let totalAmount = 0;
   let volumeCredits = 0;
   let result = `Statement for ${invoice.customer}\n`;
 
-  //遍历所有的剧场剧目
+  totalAmount = calculateTotalAmount(invoice, plays, totalAmount);
+
   for (let perf of invoice.performances) {
     const play = plays[perf.playID];
-    let thisAmount = calculateAmount(play,perf);
+    let thisAmount = calculateAmount(play, perf);
     volumeCredits += calculateVolumeCredits(perf, play);
     //print line for this order
     result += ` ${play.name}: ${toUsd(thisAmount)} (${perf.audience} seats)\n`;
-    totalAmount += thisAmount;
   }
-
 
   result += `Amount owed is ${toUsd(totalAmount)}\n`;
   result += `You earned ${volumeCredits} credits \n`;
