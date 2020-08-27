@@ -1,93 +1,105 @@
 function calculateVolumeCredits(perf, play) {
-  let volumeCredits = 0;
-  // add volume credits  计算返还客户的积分
-  volumeCredits += Math.max(perf.audience - 30, 0);
-  // add extra credit for every ten comedy attendees
-  if ('comedy' === play.type) volumeCredits += Math.floor(perf.audience / 5);
-  return volumeCredits;
+    let volumeCredits = 0;
+    // add volume credits  计算返还客户的积分
+    volumeCredits += Math.max(perf.audience - 30, 0);
+    // add extra credit for every ten comedy attendees
+    if ('comedy' === play.type) volumeCredits += Math.floor(perf.audience / 5);
+    return volumeCredits;
 }
 
 function toUsd(amount) {
-  return  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-  }).format(amount/100);
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
+    }).format(amount / 100);
 }
 
 function calculateTotalAmount(invoice, plays) {
-  let totalAmount = 0;
-  for (let perf of invoice.performances) {
-    const play = plays[perf.playID];
-    let thisAmount = calculateAmount(play, perf);
-    totalAmount += thisAmount;
-  }
-  return totalAmount;
+    let totalAmount = 0;
+    for (let perf of invoice.performances) {
+        const play = plays[perf.playID];
+        let thisAmount = calculateAmount(play, perf);
+        totalAmount += thisAmount;
+    }
+    return totalAmount;
 }
 
-function calculateTotalVolumeCredits(invoice,plays){
-  let volumeCredits = 0;
-  for (let perf of invoice.performances) {
-    const play = plays[perf.playID];
-    volumeCredits += calculateVolumeCredits(perf, play);
-  }
-  return volumeCredits;
+function calculateTotalVolumeCredits(invoice, plays) {
+    let volumeCredits = 0;
+    for (let perf of invoice.performances) {
+        const play = plays[perf.playID];
+        volumeCredits += calculateVolumeCredits(perf, play);
+    }
+    return volumeCredits;
 }
 
 function createResult(invoice, plays) {
-  let totalAmount = calculateTotalAmount(invoice, plays);
-  let volumeCredits = calculateTotalVolumeCredits(invoice,plays);
-  let result = `Statement for ${invoice.customer}\n`;
+    let data = generateData(invoice, plays);
+    let result = `Statement for ${data.customerName}\n`;
 
-  for (let perf of invoice.performances) {
-    const play = plays[perf.playID];
-    let thisAmount = calculateAmount(play, perf);
-    result += ` ${play.name}: ${toUsd(thisAmount)} (${perf.audience} seats)\n`;
-  }
+    for (let playInfo of data.playInfos) {
+        result += ` ${playInfo.name}: ${playInfo.amount} (${playInfo.audience} seats)\n`;
+    }
 
-  result += `Amount owed is ${toUsd(totalAmount)}\n`;
-  result += `You earned ${volumeCredits} credits \n`;
-  return result;
+    result += `Amount owed is ${data.totalAmounts}\n`;
+    result += `You earned ${data.totalVolumeCredits} credits \n`;
+    return result;
 }
 
-function statement (invoice, plays) {
+function generateData(invoice, plays) {
+    let data = {};
+    data.totalAmounts = toUsd(calculateTotalAmount(invoice, plays));
+    data.totalVolumeCredits = calculateTotalVolumeCredits(invoice,plays);
+    data.customerName = invoice.customer;
+    data.performances = invoice.performances;
+    data.playInfos = [];
 
-  let result ;
-
-  result = createResult(invoice,plays);
-
-
-  return result;
+    for (let perf of invoice.performances) {
+        const play = plays[perf.playID];
+        let thisAmount = toUsd(calculateAmount(play, perf));
+        data.playInfos.push({'amount': thisAmount, 'name': play.name,'audience':perf.audience});
+    }
+    return data;
 }
 
-function calculateAmount(play,perf){
-  let thisAmount = 0;
-  switch (play.type) {
-      //悲剧的收费
-    case 'tragedy':
-      thisAmount = 40000;
-      //如果观众人数多于30人，加收费用
-      if (perf.audience > 30) {
-        thisAmount += 1000 * (perf.audience - 30);
-      }
-      break;
-      //喜剧收费
-    case 'comedy':
-      thisAmount = 30000;
-      //如果观众多于20人，加收费用
-      if (perf.audience > 20) {
-        thisAmount += 10000 + 500 * (perf.audience - 20);
-      }
-      thisAmount += 300 * perf.audience;
-      break;
-    default:
-      throw new Error(`unknown type: ${play.type}`);
-  }
-  return thisAmount;
+function statement(invoice, plays) {
+
+    let result;
+
+    result = createResult(invoice, plays);
+
+
+    return result;
 }
 
+function calculateAmount(play, perf) {
+    let thisAmount = 0;
+    switch (play.type) {
+        //悲剧的收费
+        case 'tragedy':
+            thisAmount = 40000;
+            //如果观众人数多于30人，加收费用
+            if (perf.audience > 30) {
+                thisAmount += 1000 * (perf.audience - 30);
+            }
+            break;
+        //喜剧收费
+        case 'comedy':
+            thisAmount = 30000;
+            //如果观众多于20人，加收费用
+            if (perf.audience > 20) {
+                thisAmount += 10000 + 500 * (perf.audience - 20);
+            }
+            thisAmount += 300 * perf.audience;
+            break;
+        default:
+            throw new Error(`unknown type: ${play.type}`);
+    }
+    return thisAmount;
+}
 
 
 module.exports = {
-  statement,
+    statement,
 };
