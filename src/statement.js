@@ -32,8 +32,7 @@ function calculateTotalVolumeCredits(invoice, plays) {
     return volumeCredits;
 }
 
-function createResult(invoice, plays) {
-    let data = generateData(invoice, plays);
+function createResult(data) {
     let result = `Statement for ${data.customerName}\n`;
 
     for (let playInfo of data.playInfos) {
@@ -62,13 +61,23 @@ function generateData(invoice, plays) {
 }
 
 function statement(invoice, plays) {
+    return createResult(generateData(invoice, plays));
+}
 
-    let result;
+function createHtmlResult(data) {
+    let result = `<h1>Statement for ${data.customerName}</h1>\n<table>\n<tr><th>play</th><th>seats</th><th>cost</th></tr>`;
 
-    result = createResult(invoice, plays);
-
-
+    for (let playInfo of data.playInfos) {
+        result += `<tr><td>${playInfo.name}</td><td>${playInfo.audience}</td><td>${playInfo.amount}</td></tr>\n`;
+    }
+    result += `</table>\n`
+    result += `<p>Amount owed is <em>${data.totalAmounts}</em></p>\n`;
+    result += `<p>You earned <em>${data.totalVolumeCredits}</em> credits</p>\n`;
     return result;
+}
+
+function htmlStatement(invoice,plays){
+    return createHtmlResult(generateData(invoice,plays));
 }
 
 function calculateAmount(play, perf) {
@@ -94,6 +103,8 @@ function calculateAmount(play, perf) {
 }
 
 
+
 module.exports = {
     statement,
+    htmlStatement,
 };
