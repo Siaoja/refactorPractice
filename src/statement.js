@@ -34,25 +34,29 @@ function calculateTotalVolumeCredits(invoice,plays){
   return volumeCredits;
 }
 
-function statement (invoice, plays) {
-  let totalAmount = 0;
-  let volumeCredits;
+function createResult(invoice, plays) {
+  let totalAmount = calculateTotalAmount(invoice, plays);
+  let volumeCredits = calculateTotalVolumeCredits(invoice,plays);
   let result = `Statement for ${invoice.customer}\n`;
-
-
-  totalAmount = calculateTotalAmount(invoice, plays, totalAmount);
-  volumeCredits = calculateTotalVolumeCredits(invoice,plays);
 
   for (let perf of invoice.performances) {
     const play = plays[perf.playID];
     let thisAmount = calculateAmount(play, perf);
-    //print line for this order
     result += ` ${play.name}: ${toUsd(thisAmount)} (${perf.audience} seats)\n`;
   }
 
-
   result += `Amount owed is ${toUsd(totalAmount)}\n`;
   result += `You earned ${volumeCredits} credits \n`;
+  return result;
+}
+
+function statement (invoice, plays) {
+
+  let result ;
+
+  result = createResult(invoice,plays);
+
+
   return result;
 }
 
